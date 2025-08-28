@@ -124,6 +124,26 @@ class Demonstracao:
         plt.axis("off")
         plt.title(self.titulo)
         plt.show()
+        
+    def demonstracao_respostas_das_questoes(self, filtro_classificacao:str, dict_resultado:dict):
+        indice = (dict_resultado['treino_classificacao'] == filtro_classificacao)
+        filtro_matriz = dict_resultado['matriz_tf_idf_treino'][indice]
+        resultado = np.asarray(filtro_matriz.getnnz(axis=0)).ravel() > 0
+        termos = dict_resultado['termos'][resultado]
+
+        unigrama = [t for t in termos if t.count(' ') == 0]
+        bigramas  = [t for t in termos if t.count(' ') == 1]
+        trigramas = [t for t in termos if t.count(' ') == 2]
+
+        print(f"Palavras:")
+        print(len(unigrama))
+        print(f"Bigramas:")
+        print(len(bigramas))
+        print(f"Trigramas:")
+        print(len(trigramas))
+        print("Acurácia: ")
+        print(dict_resultado['acuracia'])
+        
     
 if __name__ == '__main__':
     '''
@@ -135,7 +155,7 @@ if __name__ == '__main__':
     # Definição do número máximo de palavras por texto
     # Faço isso para calibração, para que a IA não atribua
     # pesos excessívos para parâmetros de tamanho de texto
-    qtd_max_de_tokens = 210
+    qtd_max_de_tokens = 170
     # Caminho local do arquivo pre-processed.csv
     caminho_csv = "corpus/preprocessed/pre-processed.csv"
     meu_ru = '4444964'
@@ -199,18 +219,19 @@ if __name__ == '__main__':
     # Criei uma classe responsável só para demonstração dos resultados
     # Por gráfico de núvem de palavras
     inst_demonstracao = Demonstracao(meu_ru=meu_ru)
+    filtros = ['true', 'fake']
     
-    # Gerando gráfico das notícias Verdadeiras e salvando:
-    inst_demonstracao.gerar_grafico(
-        filtro_classificacao='true',
-        treino_classificacao= dict_resultado['treino_classificacao'],
-        matriz_tf_idf_treino=dict_resultado['matriz_tf_idf_treino'],
-        termos=dict_resultado['termos']
-    )
-    # Gerando gráfico das notícias Falsas e salvando:
-    inst_demonstracao.gerar_grafico(
-        filtro_classificacao='fake',
-        treino_classificacao= dict_resultado['treino_classificacao'],
-        matriz_tf_idf_treino=dict_resultado['matriz_tf_idf_treino'],
-        termos=dict_resultado['termos']
-    )
+    for filtro_loop in filtros:
+        print(f'\n\nCaso {filtro_loop}:\n\n')
+        # Gerando gráfico das notícias Verdadeiras ou Falsas (Loop) e salvando:
+        inst_demonstracao.gerar_grafico(
+            filtro_classificacao=filtro_loop,
+            treino_classificacao= dict_resultado['treino_classificacao'],
+            matriz_tf_idf_treino=dict_resultado['matriz_tf_idf_treino'],
+            termos=dict_resultado['termos']
+        )
+    
+        inst_demonstracao.demonstracao_respostas_das_questoes(
+            filtro_classificacao=filtro_loop,
+            dict_resultado=dict_resultado
+        )
